@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 
 	firebase "firebase.google.com/go"
@@ -38,9 +41,22 @@ type Status struct {
 }
 
 func main() {
+	flag.Parse()
+	if flag.NArg() != 1 {
+		fmt.Println("firebase key file not set for Args")
+		return
+	}
+	args := flag.Args()
+	file := args[0]
+	_, err := os.Stat(file)
+	if err != nil {
+		fmt.Println("error : firebase key file not found")
+		return
+	}
+
 	// Use a service account
 	ctx := context.Background()
-	sa := option.WithCredentialsFile("path/to/serviceAccountKey.json")
+	sa := option.WithCredentialsFile(file)
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
 		fmt.Printf("error initializing app: %v", err)
@@ -72,4 +88,15 @@ func main() {
 		}
 	}
 
+	iter := client.Collection("private/v1/magicalGirls").Documents(ctx)
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			fmt.Printf("error get magicalGirl documents : %v", err)
+		}
+		fmt.Println(doc.Data())
+	}
 }
