@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	"google.golang.org/api/option"
 
@@ -52,5 +53,23 @@ func main() {
 		return
 	}
 	defer client.Close()
+
+	// load json file
+	bytes, err := ioutil.ReadFile("path/to/magicalGirls.json")
+	if err != nil {
+		fmt.Printf("error load magicalGirls.json : %v", err)
+	}
+	magicalGirls, err := UnmarshalMagicalGirls(bytes)
+	if err != nil {
+		fmt.Printf("error unmarshal magicalGirls.json : %v", err)
+	}
+
+	for i := range magicalGirls {
+		_, err = client.Collection("private/v1/magicalGirls").Doc(magicalGirls[i].Key).Set(ctx, magicalGirls[i])
+		if err != nil {
+			fmt.Printf("error adding magicalGirl: %v", err)
+			return
+		}
+	}
 
 }
