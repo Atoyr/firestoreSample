@@ -18,4 +18,12 @@ func main() {
 		fmt.Printf("error initializing app: %v", err)
 		return
 	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		fmt.Printf("error create Firestore client: %v", err)
+		return
+	}
+	defer client.Close()
+
 }
